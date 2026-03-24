@@ -39,7 +39,7 @@ class MyTranslationPipeline {
 }
 
 // ─── Message Handler ────────────────────────────────────────────────────────
-// Listen for translation requests from the main thread
+// Expected payload shape: `TranslateRequest` — `text` is string[] (chunks joined by worker usage)
 
 self.addEventListener("message", async (event: MessageEvent) => {
   const { text, src_lang, tgt_lang } = event.data;
@@ -59,6 +59,7 @@ self.addEventListener("message", async (event: MessageEvent) => {
     ) => string;
   };
 
+  // Pipeline is invoked with source/target NLLB codes (e.g. eng_Latn → fra_Latn)
   // Run translation with streaming callback for live updates
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const output = await (translator as any)(text, {

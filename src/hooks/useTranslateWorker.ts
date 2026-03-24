@@ -78,6 +78,7 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
           addLog("Initialising NLLB-200 translation model…");
           break;
         case "progress":
+          // Reserved for granular download % — UI currently relies on "update"/"complete"
           break;
         case "update":
           // Live update: show intermediate translation as model generates tokens
@@ -126,6 +127,7 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
       setFinalTokenCount(0);
       addLog(`Starting translation → ${langName}…`);
       appToast.translationStarted(langName);
+      // Whisper output is English in this app build — NLLB source fixed to Latin English
       worker.current?.postMessage({
         text: textChunks,
         src_lang: "eng_Latn",

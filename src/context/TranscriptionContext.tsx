@@ -59,6 +59,7 @@ export interface TranscriptionContextValue {
  * Initialized as `null` — components must use the `useTranscription` hook
  * which throws an error if used outside the provider.
  */
+// Default `null` forces consumers through `useTranscription()` which validates provider presence
 export const TranscriptionContext =
   createContext<TranscriptionContextValue | null>(null);
 

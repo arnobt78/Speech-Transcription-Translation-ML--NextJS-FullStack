@@ -70,9 +70,11 @@ export function AppProvider({ children }: AppProviderProps) {
       );
     }
 
+    /** Dispatches worker → main thread messages (see `WhisperWorkerMessage` in types). */
     const onMessageReceived = (e: MessageEvent<WhisperWorkerMessage>) => {
       switch (e.data.type) {
         case MessageTypes.DOWNLOADING:
+          // Model weights downloading from Hugging Face Hub (first visit or cache miss)
           setDownloading(true);
           setDownloadProgress(e.data.progress);
           if (Math.round(e.data.progress) % 10 === 0) {
@@ -82,17 +84,20 @@ export function AppProvider({ children }: AppProviderProps) {
           }
           break;
         case MessageTypes.LOADING:
+          // Weights ready; worker is about to run inference on decoded audio
           setLoading(true);
           addLog("Model ready — preparing audio (decoding PCM @ 16 kHz)…");
           appToast.transcribingStarted();
           break;
         case MessageTypes.RESULT:
+          // Partial or full chunk results — we replace `output` with the latest full array
           setOutput(e.data.results);
           addLog(
             `✓ Chunk ${e.data.results.length}: “${e.data.results[e.data.results.length - 1]?.text?.trim() ?? ""}”`,
           );
           break;
         case MessageTypes.INFERENCE_DONE:
+          // Worker finished all chunks; UI can show export actions
           setFinished(true);
           setLoading(false);
           setDownloading(false);
@@ -100,6 +105,7 @@ export function AppProvider({ children }: AppProviderProps) {
           appToast.transcribingDone();
           break;
         case MessageTypes.ERROR:
+          // Fatal error in worker (model load, inference, or uncaught exception)
           setTranscriptionError(e.data.error);
           setLoading(false);
           setDownloading(false);
@@ -181,9 +187,10 @@ export function AppProvider({ children }: AppProviderProps) {
       return;
     }
 
+    // Must match worker's Xenova model id / family — tiny.en = fast English-only
     const modelName = "openai/whisper-tiny.en";
 
-    // Send inference request to the Whisper Web Worker
+    // Send inference request to the Whisper Web Worker (Float32Array is structured-cloned)
     worker.current?.postMessage({
       type: MessageTypes.INFERENCE_REQUEST,
       audio,
@@ -225,6 +232,7 @@ export function AppProvider({ children }: AppProviderProps) {
     ],
   );
 
+  // Any descendant can call `useTranscription()` — must stay inside this Provider
   return (
     <TranscriptionContext.Provider value={contextValue}>
       {children}

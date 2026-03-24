@@ -9,11 +9,13 @@ import type { NextConfig } from "next";
  *   in the browser bundle (same effect as webpack's `resolve.fallback: false`)
  * - `webpack`: Equivalent fallback config kept for `next build` (Webpack)
  */
+// Defense-in-depth headers for all routes — mic is still used via getUserMedia (user gesture + permission)
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Feature policy: geolocation/camera disabled for embeds; recording uses prompt-based mic API
   { key: "Permissions-Policy", value: "camera=(), geolocation=()" },
 ];
 

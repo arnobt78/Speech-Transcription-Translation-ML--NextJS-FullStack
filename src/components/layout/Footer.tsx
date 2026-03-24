@@ -22,6 +22,7 @@ export function Footer() {
       className="mt-auto border-t border-slate-200"
     >
       <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-center px-6 sm:px-8 backdrop-blur-sm bg-transparent">
+        {/* Year updates client-side — "use client" avoids SSR/client year mismatch */}
         <p className="text-sm text-slate-400">
           &copy; {new Date().getFullYear()} FreeScribe &mdash; All rights
           reserved.

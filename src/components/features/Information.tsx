@@ -47,6 +47,8 @@ import type {
 
 // ─── Export Format Utilities ────────────────────────────────────────────────
 
+// ─── Subtitle export helpers (SRT/VTT) — pure functions, easy to unit test ───
+
 /** Format seconds for SRT timestamps (HH:MM:SS,mmm) */
 function formatSrtTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -121,6 +123,7 @@ export function Information({ output, finished }: InformationProps) {
   // Auto-scroll log panels to bottom
   const transcriptLogRef = useRef<HTMLDivElement>(null);
   const translateLogRef = useRef<HTMLDivElement>(null);
+  // Intentionally no dependency array: follow new log lines on every paint while streaming
   useEffect(() => {
     if (transcriptLogRef.current) {
       transcriptLogRef.current.scrollTop =
@@ -200,6 +203,7 @@ export function Information({ output, finished }: InformationProps) {
     [output, transcriptionText, translation],
   );
 
+  // Wraps hook's `generateTranslation(string[])` so `Translation` UI can use a zero-arg handler
   const handleGenerateTranslation = useCallback(() => {
     generateTranslation(transcriptionText);
   }, [generateTranslation, transcriptionText]);

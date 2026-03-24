@@ -39,15 +39,108 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
 });
 
-// ─── Metadata ────────────────────────────────────────────────────────────────
-// Next.js uses this export to generate <head> tags (title, description, etc.)
+// ─── Metadata (SEO) ───────────────────────────────────────────────────────────
+// Next.js generates <head> tags from this object. `metadataBase` makes relative
+// OG/Twitter URLs resolve to the canonical production site when env is unset.
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://transcription-translation.vercel.app";
+
+const appName = process.env.NEXT_PUBLIC_APP_TITLE ?? "FreeScribe";
+
+const defaultTitle = `${appName} — Local AI Voice & Audio Transcription & Translation`;
+
+const siteDescription =
+  "Machine-learning powered, privacy-first voice and audio transcription and translation in your browser. Record or upload audio, transcribe with Whisper-class models via Web Workers, translate into many languages, and export — no server upload required.";
+
+const siteKeywords = [
+  "FreeScribe",
+  "transcription",
+  "translation",
+  "speech to text",
+  "voice transcription",
+  "audio transcription",
+  "machine learning",
+  "local browser ML",
+  "Web Worker",
+  "Whisper",
+  "OpenAI Whisper",
+  "Next.js",
+  "React",
+  "TypeScript",
+  "privacy",
+  "in-browser AI",
+  "Hugging Face Transformers",
+] as const;
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_TITLE ?? "FreeScribe",
-  description:
-    "Free AI-powered audio transcription and translation. Record or upload audio, transcribe with OpenAI Whisper, and translate into 200+ languages — all running locally in your browser.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: defaultTitle,
+    template: `%s | ${appName}`,
+  },
+  description: siteDescription,
+  keywords: [...siteKeywords],
+  applicationName: appName,
+  authors: [
+    {
+      name: "Arnob Mahmud",
+      url: "https://www.arnobmahmud.com",
+    },
+  ],
+  creator: "Arnob Mahmud",
+  publisher: "Arnob Mahmud",
+  category: "technology",
   icons: {
     icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: appName,
+    title: defaultTitle,
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary",
+    title: defaultTitle,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+};
+
+// Structured data for search engines (JSON-LD) — complements the `metadata` object above
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: appName,
+  url: siteUrl,
+  description: siteDescription,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web Browser",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  author: {
+    "@type": "Person",
+    name: "Arnob Mahmud",
+    url: "https://www.arnobmahmud.com",
+    email: "contact@arnobmahmud.com",
   },
 };
 
@@ -69,6 +162,11 @@ export default function RootLayout({
         suppressHydrationWarning
         className="app-body min-h-screen font-sans text-slate-800 antialiased"
       >
+        {/* JSON-LD must be a string; stringify runs on the server at render time */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col">
           <AppProvider>{children}</AppProvider>
         </div>

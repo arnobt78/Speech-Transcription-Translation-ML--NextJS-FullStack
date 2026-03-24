@@ -43,6 +43,7 @@ import { RippleButton } from "@/components/ui/ripple-button";
 import { Badge } from "@/components/ui/badge";
 import { appToast } from "@/lib/toasts";
 
+// Browser file picker filter — still validate server-side if you ever add uploads API
 const ACCEPTED_AUDIO_TYPES = ".mp3,.wav,.wave,.webm,.ogg,.m4a,.flac";
 
 const STEPS = [

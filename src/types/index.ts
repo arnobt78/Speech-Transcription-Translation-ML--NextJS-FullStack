@@ -194,4 +194,5 @@ export interface TranscriptionHistoryEntry {
 
 // ─── Export Format Types ─────────────────────────────────────────────────────
 
+/** Plain text vs subtitle formats — SRT/VTT use chunk timestamps from Whisper */
 export type ExportFormat = "txt" | "srt" | "vtt";

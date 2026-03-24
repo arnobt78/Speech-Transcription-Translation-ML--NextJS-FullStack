@@ -53,6 +53,7 @@ export function useMediaRecorder(
   const audioChunks = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // WebM is widely supported for MediaRecorder; decoder in AppProvider accepts various blobs
   const mimeType = "audio/webm";
 
   /**

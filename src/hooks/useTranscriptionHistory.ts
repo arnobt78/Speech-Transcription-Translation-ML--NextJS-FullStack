@@ -71,7 +71,7 @@ export function useTranscriptionHistory(): UseTranscriptionHistoryReturn {
       };
 
       setHistory((prev) => {
-        // Keep only the most recent entries
+        // Cap list size so localStorage stays small and parse stays fast
         const updated = [newEntry, ...prev].slice(0, MAX_HISTORY_ITEMS);
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));

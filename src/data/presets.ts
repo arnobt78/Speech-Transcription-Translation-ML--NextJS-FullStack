@@ -231,3 +231,5 @@ export const LANGUAGES: Record<string, string> = {
   "Yue Chinese": "yue_Hant",
   Zulu: "zul_Latn",
 };
+
+// `LANGUAGES` maps human-readable labels → NLLB-200 tokenizer codes (used by translate.worker)

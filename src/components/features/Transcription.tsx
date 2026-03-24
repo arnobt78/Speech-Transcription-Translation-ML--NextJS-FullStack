@@ -35,6 +35,7 @@ export function Transcription({ textElement, output }: TranscriptionProps) {
   if (output && output.length > 0) {
     return (
       <div className="flex flex-col gap-3">
+        {/* `chunk.index` is the ASR segment index from the worker; `idx` only offsets animation stagger */}
         {output.map((chunk, idx) => (
           <AnimatedContainer
             key={chunk.index}

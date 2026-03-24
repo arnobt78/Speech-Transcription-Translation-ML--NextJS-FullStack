@@ -11,6 +11,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** Shown by Next.js while the route segment suspends (e.g. slow dynamic import). */
 export default function Loading() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col">

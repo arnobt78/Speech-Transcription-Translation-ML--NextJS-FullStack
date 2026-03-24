@@ -28,6 +28,7 @@ export function Transcribing({
   const StageIcon = downloading ? Download : Cpu;
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // Feeds the `.progress-bar-fill` gradient width via CSS custom property (see globals.css)
   useEffect(() => {
     progressBarRef.current?.style.setProperty(
       "--progress",

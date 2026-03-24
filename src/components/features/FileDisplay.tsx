@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { RippleButton } from "@/components/ui/ripple-button";
 import type { FileDisplayProps } from "@/types";
 
+/** Human-readable size for uploaded files only (recordings may omit size). */
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;

@@ -35,8 +35,7 @@ export function MainContent() {
     handleFormSubmission,
   } = useTranscription();
 
-  // Priority-based view selection:
-  // If we have output, show results regardless of other state
+  // Walkthrough: state machine — first matching branch wins (results → loading → file → home)
   if (output) {
     return <Information output={output} finished={finished} />;
   }

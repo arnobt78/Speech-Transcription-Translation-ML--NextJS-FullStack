@@ -8,6 +8,9 @@
  * Pattern: "Thin Server Page → Fat Client Component"
  * - Server page handles routing and metadata
  * - Client component handles all interactivity and state
+ *
+ * Educational note: `Header`/`Footer` could be Server Components if refactored,
+ * but they use client hooks (`useTranscription`, motion) so they stay `"use client"`.
  */
 
 import { MainContent } from "@/components/pages/MainContent";

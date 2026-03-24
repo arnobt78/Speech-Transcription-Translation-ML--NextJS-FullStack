@@ -45,6 +45,7 @@ class MyTranscriptionPipeline {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pipelineFn = pipeline as any;
       this.instance = (await pipelineFn(this.task, this.model, {
+        // q8 = 8-bit quantized weights: smaller download & faster inference vs fp32
         dtype: "q8",
         progress_callback: progressCallback,
       })) as AutomaticSpeechRecognitionPipeline;
@@ -96,6 +97,7 @@ async function transcribe(audio: Float32Array): Promise<void> {
 
   sendLoadingMessage("success");
 
+  // Stride overlap smooths boundaries between 30s windows (see Whisper long-form ASR)
   const strideLengthS = 5;
   const generationTracker = new GenerationTracker(
     pipelineInstance,
@@ -105,6 +107,7 @@ async function transcribe(audio: Float32Array): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pipelineResult: any;
   try {
+    // Callable pipeline: runs ASR on full Float32Array with chunked processing inside the lib
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pipelineResult = await (pipelineInstance as any)(audio, {
       top_k: 0,

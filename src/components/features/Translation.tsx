@@ -18,6 +18,10 @@ import { RippleButton } from "@/components/ui/ripple-button";
 import { cn } from "@/lib/utils";
 import type { TranslationProps } from "@/types";
 
+/**
+ * `generateTranslation` is bound in `Information` to include transcription text —
+ * the button calls it with no args (see `TranslationProps.generateTranslation`).
+ */
 export function Translation({
   toLanguage,
   translating,

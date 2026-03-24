@@ -1,3 +1,7 @@
+/**
+ * ESLint flat config — extends Next.js core-web-vitals + TypeScript rules.
+ * `FlatCompat` bridges classic "extends" strings into ESLint 9+ flat format.
+ */
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
@@ -10,6 +14,17 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      ".next/**",
+      "next-env.d.ts",
+      "node_modules/**",
+      "out/**",
+      "build/**",
+      "coverage/**",
+      "*.min.js",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {

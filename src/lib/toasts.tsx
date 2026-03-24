@@ -1,3 +1,12 @@
+/**
+ * Centralized toast helpers (Sonner) — UX feedback without blocking the UI.
+ *
+ * Walkthrough:
+ * - `toast.custom` renders our own JSX (`ToastContent`) so branding matches the app.
+ * - Stable `id` values let us replace or dismiss a long-running toast (e.g. dismiss
+ *   "transcribing" when transcription completes).
+ * - `duration: Infinity` keeps progress toasts visible until explicitly dismissed.
+ */
 "use client";
 
 import { toast } from "sonner";

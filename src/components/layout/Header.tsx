@@ -32,6 +32,7 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-6 sm:px-8 backdrop-blur-sm bg-transparent">
         {/* Logo */}
+        {/* Soft navigation: same route reloads state only if you remount provider — here just scroll-top behavior */}
         <Link href="/" className="group flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
             <Mic2
@@ -46,6 +47,7 @@ export function Header() {
 
         {/* Navigation */}
         <div className="flex items-center gap-2">
+          {/* Clears transcription state in context — same as finishing a "new session" */}
           <RippleButton
             onClick={handleAudioReset}
             className="flex h-9 items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/40"
