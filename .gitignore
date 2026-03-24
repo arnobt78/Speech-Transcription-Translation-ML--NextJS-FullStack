@@ -1,4 +1,27 @@
-# Logs
+# Dependencies
+node_modules
+/.pnp
+.pnp.*
+__pycache__
+
+# Next.js
+/.next/
+/out/
+
+# Production build
+/build
+dist
+dist-ssr
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+
+# Debug logs
 logs
 *.log
 npm-debug.log*
@@ -7,10 +30,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
 # Editor directories and files
 .vscode/*

@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+:root {
+  --font-sans: "Open Sans", system-ui, -apple-system, sans-serif;
+  --font-heading: "Poppins", system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Base Resets ─────────────────────────────────────────────────────────── */
+/* Must be inside @layer base — in Tailwind v4 all utilities live in          */
+/* @layer utilities. Any unlayered CSS wins the cascade regardless of         */
+/* specificity, so an unlayered `* { margin:0; padding:0 }` would silently   */
+/* override every px-*, py-*, mx-auto utility on the entire page.             */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      rgba(99, 102, 241, 0.18) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 100%,
+      rgba(236, 72, 153, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 80%,
+      rgba(59, 130, 246, 0.12) 0%,
+      transparent 55%
+    );
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+/* ─── Utility Animations ──────────────────────────────────────────────────── */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Progress Bar ────────────────────────────────────────────────────────── */
+.progress-bar-fill {
+  width: var(--progress, 0%);
+  animation: progress-fill 0.5s ease-out;
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
+
+/**
+ * Ripple Effect Animation (per RIPPLE_BUTTON_EFFECT.md)
+ *
+ * Creates a Material Design-inspired ripple that expands from the click
+ * point and fades out. The span element is created at the cursor position
+ * and this animation scales it up while reducing opacity.
+ */
+@keyframes ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/**
+ * CTA Shine Effect (per RIPPLE_BUTTON_EFFECT.md)
+ *
+ * A diagonal light sweep that moves across the button surface,
+ * creating a premium "call to action" shine effect. The pseudo-element
+ * is positioned at -100% and translates to 200% across the button.
+ */
+@keyframes cta-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/**
+ * Loading Bar Animation
+ *
+ * Used in the Transcribing component to show progress.
+ * Phases: expand right (0-15%), maintain (15-50%), collapse left (50-65%)
+ */
+@keyframes loading-bar {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  15% {
+    width: 100%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 100%;
+    margin-left: 0%;
+  }
+  65% {
+    width: 0%;
+    margin-left: 100%;
+  }
+  100% {
+    width: 0%;
+    margin-left: 100%;
+  }
+}
+
+/* ─── Transcribing Loading Bars ──────────────────────────────────────────── */
+/* Three fixed delays for the animated loading bars in Transcribing.tsx.
+   Defined here so the component avoids inline style attributes. */
+
+.loading-bar-0 {
+  animation: loading-bar 5s linear infinite;
+  animation-delay: -4s;
+}
+
+.loading-bar-1 {
+  animation: loading-bar 5s linear infinite;
+  animation-delay: -2s;
+}
+
+.loading-bar-2 {
+  animation: loading-bar 5s linear infinite;
+  animation-delay: 0s;
+}
+
+/* Dynamic download progress fill.
+   The component sets --progress via a CSS custom property on the element.
+   This keeps the width data-driven without raw presentational inline styles. */
+.progress-bar-fill {
+  width: var(--progress, 0%);
+}
+
+/* ─── CTA Shine Effect Styles ─────────────────────────────────────────────── */
+
+/**
+ * The shine effect wrapper and button styles.
+ * We use plain CSS here instead of Tailwind classes because:
+ * 1. Pseudo-elements (::after) can't be fully styled inline
+ * 2. The animation requires CSS keyframes
+ * 3. overflow: hidden must be on the wrapper for the shine clip
+ */
+.cta-shine-wrap {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.cta-shine-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: cta-shine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── Scrollbar Styling ───────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

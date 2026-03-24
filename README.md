@@ -1,14 +1,8 @@
-# FreeScribe — Machine Learning Powered Voice/Audio Transcription & Translation React Web App
+# Machine Learning Powered Voice/Audio Transcription & Translation - Next.js, React, TypeScript, Web Worker (Whisper & Translate), TailwindCSS, Framer Motion FullStack Project
 
-![Screenshot 2024-09-06 at 16 57 25](https://github.com/user-attachments/assets/d6d0c53e-5b3e-4d49-b6e8-1dfbc6808a0f) ![Screenshot 2024-09-06 at 16 57 51](https://github.com/user-attachments/assets/ce94c628-8103-44d0-ae0e-4f7dc184f404) ![Screenshot 2024-09-06 at 16 58 10](https://github.com/user-attachments/assets/794bde3c-d08d-43cc-9e49-eb44033fe4a6) ![Screenshot 2024-09-06 at 16 58 17](https://github.com/user-attachments/assets/3ae53a9c-7908-4e09-bdbf-0e922a436789) ![Screenshot 2024-09-06 at 16 58 30](https://github.com/user-attachments/assets/77398251-b28d-4194-a27c-52690589d3bf) ![Screenshot 2024-09-06 at 16 58 48](https://github.com/user-attachments/assets/cf804485-b6ad-4fa3-8040-9a26fe7845b9) ![Screenshot 2024-09-06 at 16 59 46](https://github.com/user-attachments/assets/98b2b40f-d2fc-4c03-bead-d80b91fc1ed9)
+A modern, open-source transcription and translation web application that leverages on-device machine learning models, running entirely in your browser using Web Workers. Users can record or upload audio, transcribe speech to text, translate between languages, and export the results — all with privacy and speed, without sending data to any backend server.
 
----
-
-## Project Summary
-
-**FreeScribe** is a modern, open-source transcription and translation web application that leverages on-device machine learning models, running entirely in your browser using Web Workers. Users can record or upload audio, transcribe speech to text, translate between languages, and export the results — all with privacy and speed, without sending data to any backend server.
-
-- **Live-Demo:** [https://free-scribe-arnob.vercel.app/](https://free-scribe-arnob.vercel.app/)
+- **Live Demo:** [https://transcription-translation.vercel.app/](https://transcription-translation.vercel.app/)
 
 ---
 
@@ -55,7 +49,7 @@
 
 ## Project Structure
 
-```
+```bash
 /
 ├── public/
 │   └── vite.svg           # App icon
@@ -90,7 +84,7 @@
 
 ### Machine Learning Model
 
-- **Transcription** uses the *OpenAI Whisper* model, via `@xenova/transformers`, running entirely in-browser (no server needed).
+- **Transcription** uses the _OpenAI Whisper_ model, via `@xenova/transformers`, running entirely in-browser (no server needed).
 - **Translation** is performed using Whisper’s multilingual capabilities and language codes defined in `presets.js`.
 - Model progress and results are streamed back to the main app for display.
 
@@ -101,6 +95,7 @@
 ### Installation
 
 1. **Clone the repo:**
+
    ```bash
    git clone https://github.com/arnobt78/FreeScribe-Transcription-Translation-ML-App--ReactVite.git
    cd FreeScribe-Transcription-Translation-ML-App--ReactVite
@@ -110,11 +105,13 @@
    Download and install from [nodejs.org](https://nodejs.org/en/).
 
 3. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 4. **Install Transformers.js:**
+
    ```bash
    npm i @xenova/transformers
    ```
@@ -122,9 +119,11 @@
 ### Running Locally
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:5173/](http://localhost:5173/) in your browser.
 
 ---
@@ -167,11 +166,14 @@ export const LANGUAGES = {
 The worker is initialized in `App.jsx`:
 
 ```javascript
-worker.current = new Worker(new URL('./utils/whisper.worker.js', import.meta.url), { type: 'module' });
+worker.current = new Worker(
+  new URL("./utils/whisper.worker.js", import.meta.url),
+  { type: "module" },
+);
 worker.current.postMessage({
   type: MessageTypes.INFERENCE_REQUEST,
   audio,
-  model_name: 'openai/whisper-tiny.en'
+  model_name: "openai/whisper-tiny.en",
 });
 ```
 
@@ -210,7 +212,7 @@ MIT License. © 2030 [arnobt78](https://github.com/arnobt78)
 
 ## Happy Coding! 🎉
 
-Feel free to use this Project Repository and extend this project further!  
+Feel free to use this Project Repository and extend this project further!
 
 If you have any questions or want to share your work, reach out via GitHub or my portfolio [https://arnob-mahmud.vercel.app/](https://arnob-mahmud.vercel.app/).
 
