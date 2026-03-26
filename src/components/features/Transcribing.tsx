@@ -27,6 +27,7 @@ export function Transcribing({
   const { handleAudioReset, transcriptLogs } = useTranscription();
   const StageIcon = downloading ? Download : Cpu;
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   // Feeds the `.progress-bar-fill` gradient width via CSS custom property (see globals.css)
   useEffect(() => {
@@ -35,6 +36,13 @@ export function Transcribing({
       `${Math.min(downloadProgress, 100)}%`,
     );
   }, [downloadProgress]);
+
+  // Auto-scroll log to bottom whenever new lines arrive
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [transcriptLogs]);
 
   // ── Error state ──
   if (error) {
@@ -156,7 +164,10 @@ export function Transcribing({
                 </span>
                 <span className="ml-auto flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
               </div>
-              <div className="flex max-h-48 flex-col gap-1 overflow-y-auto">
+              <div
+                ref={logContainerRef}
+                className="flex max-h-48 flex-col gap-1 overflow-y-auto"
+              >
                 {transcriptLogs.map((line, i) => (
                   <motion.p
                     key={i}

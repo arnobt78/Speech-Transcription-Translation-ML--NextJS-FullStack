@@ -73,29 +73,43 @@ export function AppProvider({ children }: AppProviderProps) {
     /** Dispatches worker → main thread messages (see `WhisperWorkerMessage` in types). */
     const onMessageReceived = (e: MessageEvent<WhisperWorkerMessage>) => {
       switch (e.data.type) {
-        case MessageTypes.DOWNLOADING:
+        case MessageTypes.DOWNLOADING: {
           // Model weights downloading from Hugging Face Hub (first visit or cache miss)
           setDownloading(true);
           setDownloadProgress(e.data.progress);
-          if (Math.round(e.data.progress) % 10 === 0) {
+          const pct = Math.round(e.data.progress);
+          if (pct % 10 === 0) {
+            const fileName = e.data.file.split("/").pop() ?? e.data.file;
+            const loadedMB = (e.data.loaded / 1048576).toFixed(1);
+            const totalMB = (e.data.total / 1048576).toFixed(1);
+            addLog(`↓ ${fileName} — ${pct}% (${loadedMB}/${totalMB} MB)`);
+          }
+          break;
+        }
+        case MessageTypes.LOADING:
+          setLoading(true);
+          if (e.data.status === "loading") {
+            addLog("Whisper model initialising — loading ONNX runtime…");
+          } else if (e.data.status === "success") {
+            addLog("Model ready — decoding PCM audio @ 16 kHz…");
+            appToast.transcribingStarted();
+          }
+          break;
+        case MessageTypes.RESULT: {
+          // Partial or full chunk results — we replace `output` with the latest full array
+          setOutput(e.data.results);
+          const lastChunk = e.data.results[e.data.results.length - 1];
+          if (lastChunk) {
+            const startS = lastChunk.start.toFixed(1);
+            const endS = lastChunk.end.toFixed(1);
+            const text = lastChunk.text.trim();
+            const preview = text.length > 45 ? `${text.slice(0, 45)}…` : text;
             addLog(
-              `Downloading Whisper model… ${Math.round(e.data.progress)}%`,
+              `[${startS}s→${endS}s] Segment ${e.data.results.length}: "${preview}"`,
             );
           }
           break;
-        case MessageTypes.LOADING:
-          // Weights ready; worker is about to run inference on decoded audio
-          setLoading(true);
-          addLog("Model ready — preparing audio (decoding PCM @ 16 kHz)…");
-          appToast.transcribingStarted();
-          break;
-        case MessageTypes.RESULT:
-          // Partial or full chunk results — we replace `output` with the latest full array
-          setOutput(e.data.results);
-          addLog(
-            `✓ Chunk ${e.data.results.length}: “${e.data.results[e.data.results.length - 1]?.text?.trim() ?? ""}”`,
-          );
-          break;
+        }
         case MessageTypes.INFERENCE_DONE:
           // Worker finished all chunks; UI can show export actions
           setFinished(true);

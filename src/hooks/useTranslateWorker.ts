@@ -73,22 +73,48 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
     }
 
     const onMessageReceived = (e: MessageEvent<TranslateWorkerMessage>) => {
-      switch (e.data.status) {
-        case "initiate":
-          addLog("Initialising NLLB-200 translation model…");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = e.data as any;
+      switch (data.status) {
+        case "initiate": {
+          const file =
+            (data.file as string | undefined)?.split("/").pop() ??
+            "model component";
+          addLog(`Loading ${file}…`);
           break;
-        case "progress":
-          // Reserved for granular download % — UI currently relies on "update"/"complete"
+        }
+        case "done": {
+          const file =
+            (data.file as string | undefined)?.split("/").pop() ?? "component";
+          addLog(`✓ ${file} loaded`);
           break;
-        case "update":
-          // Live update: show intermediate translation as model generates tokens
-          setTranslation(e.data.output);
+        }
+        case "ready":
+          addLog("NLLB-200 pipeline ready — starting translation…");
+          break;
+        case "progress": {
+          const pct = Math.round(data.progress ?? 0);
+          const file = (data.file as string | undefined)?.split("/").pop();
+          if (pct > 0 && pct % 25 === 0 && file) {
+            addLog(`↓ ${file} — ${pct}%`);
+          }
+          break;
+        }
+        case "update": {
+          setTranslation(data.output);
           tokenCountRef.current += 1;
           setTokenCount((c) => c + 1);
+          if (tokenCountRef.current % 8 === 0) {
+            const words = (data.output as string).split(" ");
+            const preview = words.slice(0, 6).join(" ");
+            addLog(
+              `⟳ ${tokenCountRef.current} tokens — "${preview}${words.length > 6 ? "…" : ""}"`,
+            );
+          }
           break;
+        }
         case "complete":
-          // Set the final authoritative translation result from the pipeline output
-          setTranslation(e.data.output?.[0]?.translation_text ?? null);
+          setTranslation(data.output?.[0]?.translation_text ?? null);
           setFinalTokenCount(tokenCountRef.current);
           setTranslating(false);
           addLog(
