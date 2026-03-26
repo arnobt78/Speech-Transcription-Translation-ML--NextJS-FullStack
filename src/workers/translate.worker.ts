@@ -43,7 +43,6 @@ class MyTranslationPipeline {
 
 self.addEventListener("message", async (event: MessageEvent) => {
   const { text, src_lang, tgt_lang } = event.data;
-  const isBatch = Array.isArray(text);
 
   // Get (or create) the translation pipeline instance
   const translator = await MyTranslationPipeline.getInstance((x) => {
@@ -67,7 +66,6 @@ self.addEventListener("message", async (event: MessageEvent) => {
     tgt_lang,
     src_lang,
     callback_function: (x: Array<{ output_token_ids: number[] }>) => {
-      if (isBatch) return;
       // In v3, output_token_ids may be nested — guard before decoding
       const ids = x?.[0]?.output_token_ids;
       if (!ids) return;
