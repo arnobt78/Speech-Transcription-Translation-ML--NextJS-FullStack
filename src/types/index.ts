@@ -125,7 +125,8 @@ export type TranslateWorkerMessage =
   | { status: "initiate" }
   | { status: "progress"; progress: number }
   | { status: "update"; output: string }
-  | { status: "complete"; output: TranslationOutput[] };
+  | { status: "complete"; output: TranslationOutput[] }
+  | { status: "error"; error: string };
 
 /** Single translation output entry */
 export interface TranslationOutput {
@@ -137,6 +138,7 @@ export interface TranslateRequest {
   text: string[];
   src_lang: string;
   tgt_lang: string;
+  quality_mode?: "fast" | "high";
 }
 
 // ─── Tab Types ───────────────────────────────────────────────────────────────
@@ -181,7 +183,9 @@ export interface TranslationProps {
   finished: boolean;
   toLanguage: string;
   translating: boolean;
+  translationQuality: "fast" | "high";
   setToLanguage: (lang: string) => void;
+  setTranslationQuality: (quality: "fast" | "high") => void;
   generateTranslation: () => void;
 }
 

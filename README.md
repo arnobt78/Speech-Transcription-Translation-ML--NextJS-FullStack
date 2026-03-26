@@ -13,7 +13,10 @@ An open-source, **educational** app for **speech-to-text** and **text translatio
 
 - **Live Demo:** [https://transcription-translation.vercel.app/](https://transcription-translation.vercel.app/)
 
----
+![App Screenshot 1](https://github.com/user-attachments/assets/084ba47b-29c2-4aa0-b1b8-7c8d6aa3eb49)
+![App Screenshot 2](https://github.com/user-attachments/assets/378f49cc-59e6-4afa-8dd6-7d2e64fea380)
+![App Screenshot 3](https://github.com/user-attachments/assets/6e13480f-0dce-41b3-a63b-e4fd3263f924)
+![App Screenshot 4](https://github.com/user-attachments/assets/e0ba1299-ffe6-4b08-ae4a-55351dc04f5e)
 
 ## Table of Contents
 
@@ -37,7 +40,7 @@ An open-source, **educational** app for **speech-to-text** and **text translatio
 
 ## Project Summary
 
-This project demonstrates a **privacy-first** workflow: **audio stays in the browser** (aside from **downloading model weights** from the Hugging Face Hub / CDNs the first time you run a model). **Transcription** uses a **Whisper**-family model (`Xenova/whisper-tiny.en` in the worker) via **`@huggingface/transformers`**. **Translation** uses Meta’s **NLLB-200** distilled model (`Xenova/nllb-200-distilled-600M`) in a separate worker, with **200+ languages** mapped in `src/data/presets.ts`.
+This project demonstrates a **privacy-first** workflow: **audio stays in the browser** (aside from **downloading model weights** from the Hugging Face Hub / CDNs the first time you run a model). **Transcription** uses a **Whisper**-family model (`Xenova/whisper-tiny`, multilingual) via **`@huggingface/transformers`**. **Translation** uses Meta’s **NLLB-200** distilled model (`Xenova/nllb-200-distilled-600M`) in a separate worker, with **200+ languages** mapped in `src/data/presets.ts`.
 
 The UI is built with **Next.js App Router** (server layout + client islands), **React 19**, **TypeScript**, **Tailwind CSS v4**, **Framer Motion** for motion, **Radix UI** primitives (tabs, select, slot), **Lucide** icons, and **Sonner** toasts.
 
@@ -45,8 +48,9 @@ The UI is built with **Next.js App Router** (server layout + client islands), **
 
 ## Features
 
-- **Audio input:** Record from the microphone or upload common audio formats; the app decodes to **16 kHz PCM** for Whisper.
+- **Audio input:** Record from the microphone, upload audio, or drag-and-drop; the app decodes to **16 kHz PCM** for Whisper.
 - **Transcription:** Speech-to-text with chunked inference, progress logs, and timestamped **chunks** (`TranscriptionChunk`).
+- **Source language control:** Advanced, searchable **source language selector** (default: English) for stable multilingual transcription behavior.
 - **Translation:** Choose a target language from the **NLLB** language list; translation runs in a **dedicated Web Worker** with progress feedback.
 - **Runs locally (client-side ML):** Model inference happens in **Web Workers**, keeping the main thread responsive.
 - **Export:** Copy text and download **plain text**, **SRT**, or **WebVTT** from transcription segments.
@@ -58,19 +62,19 @@ The UI is built with **Next.js App Router** (server layout + client islands), **
 
 ## Technology Stack
 
-| Layer         | Technology                                                         | What it does here                                                                                                                          |
-| ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Framework     | **Next.js 15** (App Router)                                        | File-based routing, `layout.tsx` for global shell, static generation for marketing-style pages, Turbopack in dev (`next dev --turbopack`). |
-| UI library    | **React 19**                                                       | Components, hooks, Context for app state.                                                                                                  |
-| Language      | **TypeScript 5.8**                                                 | Shared types in `src/types/index.ts`, safer worker message handling.                                                                       |
-| Styling       | **Tailwind CSS 4**                                                 | Utility-first styling via `src/app/globals.css` and PostCSS.                                                                               |
-| Motion        | **Framer Motion**                                                  | Page/section transitions (e.g. header, animated containers).                                                                               |
-| ML            | **`@huggingface/transformers`**                                    | Loads ONNX models in the browser; `pipeline()` for ASR and translation.                                                                    |
-| UI primitives | **Radix UI** (`@radix-ui/react-tabs`, `select`, `slot`)            | Accessible tabs and selects without full component libraries.                                                                              |
-| Variants      | **class-variance-authority (CVA)** + **clsx** + **tailwind-merge** | Composable class names for buttons, badges, etc.                                                                                           |
-| Icons         | **lucide-react**                                                   | Tree-shakeable SVG icons.                                                                                                                  |
-| Toasts        | **sonner**                                                         | Non-blocking notifications for transcribe/translate events.                                                                                |
-| Lint          | **ESLint 9** + **eslint-config-next**                              | `npm run lint` runs `eslint . --max-warnings 0`.                                                                                           |
+| Layer         | Technology                                                         | What it does here                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework     | **Next.js 15** (App Router)                                        | File-based routing, `layout.tsx` for global shell, static generation for marketing-style pages, standard dev mode via `next dev` (with optional Turbopack script). |
+| UI library    | **React 19**                                                       | Components, hooks, Context for app state.                                                                                                                          |
+| Language      | **TypeScript 5.8**                                                 | Shared types in `src/types/index.ts`, safer worker message handling.                                                                                               |
+| Styling       | **Tailwind CSS 4**                                                 | Utility-first styling via `src/app/globals.css` and PostCSS.                                                                                                       |
+| Motion        | **Framer Motion**                                                  | Page/section transitions (e.g. header, animated containers).                                                                                                       |
+| ML            | **`@huggingface/transformers`**                                    | Loads ONNX models in the browser; `pipeline()` for ASR and translation.                                                                                            |
+| UI primitives | **Radix UI** (`@radix-ui/react-tabs`, `select`, `slot`)            | Accessible tabs and selects without full component libraries.                                                                                                      |
+| Variants      | **class-variance-authority (CVA)** + **clsx** + **tailwind-merge** | Composable class names for buttons, badges, etc.                                                                                                                   |
+| Icons         | **lucide-react**                                                   | Tree-shakeable SVG icons.                                                                                                                                          |
+| Toasts        | **sonner**                                                         | Non-blocking notifications for transcribe/translate events.                                                                                                        |
+| Lint          | **ESLint 9** + **eslint-config-next**                              | `npm run lint` runs `eslint . --max-warnings 0`.                                                                                                                   |
 
 **Short notes for learners**
 
@@ -172,7 +176,8 @@ This keeps each screen focused and easy to test.
 
 ### 3. Transcription worker (`whisper.worker.ts`)
 
-- Uses **`pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", …)`** with a **singleton** so the model loads once per session.
+- Uses **`pipeline("automatic-speech-recognition", "Xenova/whisper-tiny", …)`** with a **singleton** so the model loads once per session.
+- Source language is sent from the UI selector (default English) to improve consistency; auto-detect behavior may vary by transformers.js Whisper implementation details.
 - Processes audio in **chunks** (with overlap) and streams partial/final results back to the main thread.
 
 ### 4. Translation (`useTranslateWorker` + `translate.worker.ts`)
@@ -232,6 +237,12 @@ npm run dev
 
 Open **[http://localhost:3000](http://localhost:3000)** (Next.js default port; if 3000 is busy, Next will suggest another).
 
+Optional Turbopack mode:
+
+```bash
+npm run dev:turbopack
+```
+
 ### Production build
 
 ```bash
@@ -249,7 +260,7 @@ npm run lint
 
 ## Usage Walkthrough
 
-1. **Landing (`HomePage`):** Start a **microphone recording** or **upload** an audio file.
+1. **Landing (`HomePage`):** Choose optional **Advanced: source language** (default English), then start a **microphone recording**, **upload**, or **drag & drop** an audio file.
 2. **Preview (`FileDisplay`):** Listen to the clip, go back, or confirm to **transcribe**.
 3. **Processing (`Transcribing`):** First run downloads the Whisper model; progress appears in the UI and logs.
 4. **Results (`Information`):** Read **Transcription** with timestamps; switch to **Translation**, pick a **target language**, and run translation (NLLB downloads on first use).
@@ -302,6 +313,7 @@ const worker = new Worker(
 worker.postMessage({
   type: MessageTypes.INFERENCE_REQUEST,
   audio: float32AudioData,
+  source_language: "en", // optional, selected from Advanced source language UI
 });
 ```
 
@@ -315,6 +327,12 @@ The NLLB model expects **specific** language codes. Extend **`LANGUAGES`** in `s
 ```
 
 Wrong codes will silently fail or produce poor translations—always **verify** against the model card.
+
+### Source language behavior (important)
+
+- The app defaults source language to **English** for fast and stable demo performance.
+- For non-English audio, set the matching **source language** from the Advanced panel before transcription.
+- Whisper Tiny is speed-focused, so non-English quality may vary on short/noisy input.
 
 ---
 

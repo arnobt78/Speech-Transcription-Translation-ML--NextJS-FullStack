@@ -93,8 +93,10 @@ export function Information({ output, finished }: InformationProps) {
   const {
     translation,
     translating,
+    translationQuality,
     toLanguage,
     setToLanguage,
+    setTranslationQuality,
     setTranslation,
     setTranslating,
     generateTranslation,
@@ -565,7 +567,9 @@ export function Information({ output, finished }: InformationProps) {
                 finished={finished}
                 toLanguage={toLanguage}
                 translating={translating}
+                translationQuality={translationQuality}
                 setToLanguage={setToLanguage}
+                setTranslationQuality={setTranslationQuality}
                 generateTranslation={handleGenerateTranslation}
               />
             </div>

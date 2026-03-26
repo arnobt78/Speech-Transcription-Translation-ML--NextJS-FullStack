@@ -22,10 +22,14 @@ interface UseTranslateWorkerReturn {
   translation: string | null;
   /** Whether a translation is currently in progress */
   translating: boolean;
+  /** Translation quality mode */
+  translationQuality: "fast" | "high";
   /** Selected target language code */
   toLanguage: string;
   /** Set the target language for translation */
   setToLanguage: (lang: string) => void;
+  /** Set translation quality mode */
+  setTranslationQuality: (quality: "fast" | "high") => void;
   /** Clear translation state */
   setTranslation: (t: string | null) => void;
   /** Set translating state */
@@ -43,6 +47,9 @@ interface UseTranslateWorkerReturn {
 export function useTranslateWorker(): UseTranslateWorkerReturn {
   const [translation, setTranslation] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [translationQuality, setTranslationQuality] = useState<"fast" | "high">(
+    "fast",
+  );
   const [toLanguage, setToLanguage] = useState("Select language");
   const [translateLogs, setTranslateLogs] = useState<string[]>([]);
   const [tokenCount, setTokenCount] = useState(0);
@@ -122,6 +129,10 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
           );
           appToast.translationDone();
           break;
+        case "error":
+          setTranslating(false);
+          addLog(`✖ Translation failed: ${data.error ?? "Unknown error"}`);
+          break;
       }
     };
 
@@ -151,23 +162,26 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
       setTokenCount(0);
       tokenCountRef.current = 0;
       setFinalTokenCount(0);
-      addLog(`Starting translation → ${langName}…`);
+      addLog(`Starting translation → ${langName} (${translationQuality})…`);
       appToast.translationStarted(langName);
       // Whisper output is English in this app build — NLLB source fixed to Latin English
       worker.current?.postMessage({
         text: textChunks,
         src_lang: "eng_Latn",
         tgt_lang: toLanguage,
+        quality_mode: translationQuality,
       });
     },
-    [translating, toLanguage, addLog],
+    [translating, toLanguage, addLog, translationQuality],
   );
 
   return {
     translation,
     translating,
+    translationQuality,
     toLanguage,
     setToLanguage,
+    setTranslationQuality,
     setTranslation,
     setTranslating,
     generateTranslation,

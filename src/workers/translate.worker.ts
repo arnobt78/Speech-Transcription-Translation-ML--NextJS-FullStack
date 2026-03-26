@@ -42,46 +42,59 @@ class MyTranslationPipeline {
 // Expected payload shape: `TranslateRequest` — `text` is string[] (chunks joined by worker usage)
 
 self.addEventListener("message", async (event: MessageEvent) => {
-  const { text, src_lang, tgt_lang } = event.data;
+  const { text, src_lang, tgt_lang, quality_mode } = event.data;
 
-  // Get (or create) the translation pipeline instance
-  const translator = await MyTranslationPipeline.getInstance((x) => {
-    // Forward download/loading progress to the main thread
-    self.postMessage(x);
-  });
+  try {
+    // Get (or create) the translation pipeline instance
+    const translator = await MyTranslationPipeline.getInstance((x) => {
+      // Forward download/loading progress to the main thread
+      self.postMessage(x);
+    });
 
-  // Access tokenizer for decoding intermediate results
-  const tokenizer = (translator as unknown as Record<string, unknown>)
-    .tokenizer as {
-    decode: (
-      ids: number[],
-      options: { skip_special_tokens: boolean },
-    ) => string;
-  };
+    // Access tokenizer for decoding intermediate results
+    const tokenizer = (translator as unknown as Record<string, unknown>)
+      .tokenizer as {
+      decode: (
+        ids: number[],
+        options: { skip_special_tokens: boolean },
+      ) => string;
+    };
 
-  // Pipeline is invoked with source/target NLLB codes (e.g. eng_Latn → fra_Latn)
-  // Run translation with streaming callback for live updates
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const output = await (translator as any)(text, {
-    tgt_lang,
-    src_lang,
-    callback_function: (x: Array<{ output_token_ids: number[] }>) => {
-      // In v3, output_token_ids may be nested — guard before decoding
-      const ids = x?.[0]?.output_token_ids;
-      if (!ids) return;
-      // Send intermediate decoded text back to UI for live preview
-      self.postMessage({
-        status: "update",
-        output: tokenizer.decode(ids, {
-          skip_special_tokens: true,
-        }),
-      });
-    },
-  });
+    const inputText = Array.isArray(text) ? text.join(" ").trim() : String(text);
+    const baseOptions = {
+      tgt_lang,
+      src_lang,
+      callback_function: (x: Array<{ output_token_ids: number[] }>) => {
+        // In v3, output_token_ids may be nested — guard before decoding
+        const ids = x?.[0]?.output_token_ids;
+        if (!ids) return;
+        // Send intermediate decoded text back to UI for live preview
+        self.postMessage({
+          status: "update",
+          output: tokenizer.decode(ids, {
+            skip_special_tokens: true,
+          }),
+        });
+      },
+    };
 
-  // Send the final complete translation
-  self.postMessage({
-    status: "complete",
-    output,
-  });
+    // Keep high mode lightweight: same public q8 model with stronger decoding only.
+    const generationOptions =
+      quality_mode === "high"
+        ? { ...baseOptions, num_beams: 3, no_repeat_ngram_size: 2 }
+        : baseOptions;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const output = await (translator as any)(inputText, generationOptions);
+
+    // Send the final complete translation
+    self.postMessage({
+      status: "complete",
+      output,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown translation error";
+    self.postMessage({ status: "error", error: message });
+  }
 });

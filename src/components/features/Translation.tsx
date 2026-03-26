@@ -100,7 +100,6 @@ export function Translation({
                 </span>
               )}
             </div>
-
             {/* Combobox + Translate button */}
             <div className="flex items-stretch gap-3">
               {/* Custom combobox trigger + dropdown */}
