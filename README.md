@@ -13,10 +13,10 @@ An open-source, **educational** app for **speech-to-text** and **text translatio
 
 - **Live Demo:** [https://transcription-translation.vercel.app/](https://transcription-translation.vercel.app/)
 
-![App Screenshot 1](https://github.com/user-attachments/assets/084ba47b-29c2-4aa0-b1b8-7c8d6aa3eb49)
-![App Screenshot 2](https://github.com/user-attachments/assets/378f49cc-59e6-4afa-8dd6-7d2e64fea380)
-![App Screenshot 3](https://github.com/user-attachments/assets/6e13480f-0dce-41b3-a63b-e4fd3263f924)
-![App Screenshot 4](https://github.com/user-attachments/assets/e0ba1299-ffe6-4b08-ae4a-55351dc04f5e)
+![Image 1](https://github.com/user-attachments/assets/6548d3ee-4881-494a-b248-0ee24e5051c9)
+![Image 2](https://github.com/user-attachments/assets/465dae0a-6db9-4e93-a733-3b4096f7168a)
+![Image 3](https://github.com/user-attachments/assets/6b48168e-bc26-4463-8ddf-9bf3556768a4)
+![Image 4](https://github.com/user-attachments/assets/b749becc-900a-490c-898e-40a592a228b6)
 
 ## Table of Contents
 
@@ -51,7 +51,7 @@ The UI is built with **Next.js App Router** (server layout + client islands), **
 - **Audio input:** Record from the microphone, upload audio, or drag-and-drop; the app decodes to **16 kHz PCM** for Whisper.
 - **Transcription:** Speech-to-text with chunked inference, progress logs, and timestamped **chunks** (`TranscriptionChunk`).
 - **Source language control:** Advanced, searchable **source language selector** (default: English) for stable multilingual transcription behavior.
-- **Translation:** Choose a target language from the **NLLB** language list; translation runs in a **dedicated Web Worker** with progress feedback.
+- **Translation:** Choose a target language from the **NLLB** language list; translation runs in a **dedicated Web Worker** with progress feedback and stable default settings.
 - **Runs locally (client-side ML):** Model inference happens in **Web Workers**, keeping the main thread responsive.
 - **Export:** Copy text and download **plain text**, **SRT**, or **WebVTT** from transcription segments.
 - **Modern UI:** Responsive layout, tabs for Transcription vs Translation, skeleton/loading states, and accessible controls.
@@ -183,6 +183,7 @@ This keeps each screen focused and easy to test.
 ### 4. Translation (`useTranslateWorker` + `translate.worker.ts`)
 
 - A **separate worker** loads **`Xenova/nllb-200-distilled-600M`** for **text-to-text** translation.
+- Translation uses a single stable default model/runtime path (no user model switching in the current UI).
 - Language names map to **NLLB codes** in `LANGUAGES` inside `src/data/presets.ts` (e.g. `English: "eng_Latn"`).
 
 ### 5. Audio decoding
@@ -263,7 +264,7 @@ npm run lint
 1. **Landing (`HomePage`):** Choose optional **Advanced: source language** (default English), then start a **microphone recording**, **upload**, or **drag & drop** an audio file.
 2. **Preview (`FileDisplay`):** Listen to the clip, go back, or confirm to **transcribe**.
 3. **Processing (`Transcribing`):** First run downloads the Whisper model; progress appears in the UI and logs.
-4. **Results (`Information`):** Read **Transcription** with timestamps; switch to **Translation**, pick a **target language**, and run translation (NLLB downloads on first use).
+4. **Results (`Information`):** Read **Transcription** with timestamps; switch to **Translation**, pick a **target language**, and run translation (NLLB downloads on first use and is cached by the browser).
 5. **Export:** **Copy** text or **download** `.txt`, `.srt`, or `.vtt` where supported.
 6. **New session:** Use **New Transcription** in the header to reset state via `handleAudioReset`.
 
