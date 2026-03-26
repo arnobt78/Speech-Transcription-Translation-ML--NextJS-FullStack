@@ -224,12 +224,11 @@ h6 {
  */
 .cta-shine-wrap {
   position: relative;
-  display: inline-block;
-  overflow: hidden;
+  display: block;
   border-radius: inherit;
 }
 
-.cta-shine-wrap::after {
+.cta-shine-button::after {
   content: "";
   position: absolute;
   top: 0;

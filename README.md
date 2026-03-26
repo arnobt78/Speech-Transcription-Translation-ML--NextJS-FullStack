@@ -9,7 +9,7 @@
 [![Web Worker](https://img.shields.io/badge/Web_Worker-100%25_local-green)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
 [![Privacy-First](https://img.shields.io/badge/Privacy-First-red)](https://www.privacytools.io/privacy-first/)
 
-An open-source, **educational** app for **speech-to-text** and **text translation** that runs **entirely in your browser**: record or upload audio, transcribe with Whisper-style models, translate into many languages, and export results—**without** sending audio or transcripts to an app server for processing. Heavy ML runs in **Web Workers** (so the UI stays responsive) via **Transformers.js** and **ONNX Runtime Web**, with no dedicated backend API required for inference. This README is for learners: it walks through the folder layout, React Context state, worker `postMessage` patterns, and how to reuse pieces elsewhere.
+An open-source, **educational** app for **speech-to-text** and **text translation** that runs **entirely in your browser**: record or upload audio, transcribe with Whisper-style models, translate into many languages, and export results—**without** sending audio or transcripts to an app server for processing. Heavy ML runs in **Web Workers** `postMessage` patterns (so the UI stays responsive) via **Transformers.js** and **ONNX Runtime Web**, with no dedicated backend API required for inference.
 
 - **Live Demo:** [https://transcription-translation.vercel.app/](https://transcription-translation.vercel.app/)
 

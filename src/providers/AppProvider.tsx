@@ -35,6 +35,7 @@ export function AppProvider({ children }: AppProviderProps) {
   // ─── State ───────────────────────────────────────────────────────────
   const [file, setFile] = useState<File | null>(null);
   const [audioStream, setAudioStream] = useState<Blob | null>(null);
+  const [sourceLanguage, setSourceLanguage] = useState("en");
   const [output, setOutput] = useState<TranscriptionChunk[] | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -44,6 +45,7 @@ export function AppProvider({ children }: AppProviderProps) {
     null,
   );
   const [transcriptLogs, setTranscriptLogs] = useState<string[]>([]);
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
 
   /** Append a timestamped line to the live log panel */
   const addLog = useCallback((msg: string) => {
@@ -93,6 +95,17 @@ export function AppProvider({ children }: AppProviderProps) {
           } else if (e.data.status === "success") {
             addLog("Model ready — decoding PCM audio @ 16 kHz…");
             appToast.transcribingStarted();
+          } else if (e.data.status?.startsWith("debug:")) {
+            // Worker debug payload: raw result shape inspection
+            try {
+              const info = JSON.parse(e.data.status.slice(6));
+              addLog(
+                `[debug] model=${info.model} language=${info.language ?? "not returned"} keys=${info.keys.join(",")}`,
+              );
+              if (info.language) setDetectedLanguage(info.language);
+            } catch {
+              // ignore malformed debug
+            }
           }
           break;
         case MessageTypes.RESULT: {
@@ -115,6 +128,16 @@ export function AppProvider({ children }: AppProviderProps) {
           setFinished(true);
           setLoading(false);
           setDownloading(false);
+          if (e.data.detectedLanguage) {
+            setDetectedLanguage(e.data.detectedLanguage);
+            addLog(`🌍 Detected language: ${e.data.detectedLanguage}`);
+          } else if (sourceLanguage) {
+            setDetectedLanguage(sourceLanguage);
+            addLog(`🌍 Using selected source language: ${sourceLanguage}`);
+          } else {
+            setDetectedLanguage(null);
+            addLog("🌍 Language not returned by model");
+          }
           addLog(`✨ Transcription complete!`);
           appToast.transcribingDone();
           break;
@@ -141,7 +164,7 @@ export function AppProvider({ children }: AppProviderProps) {
       currentWorker.removeEventListener("message", onMessageReceived);
       currentWorker.removeEventListener("error", onWorkerError);
     };
-  }, [addLog]);
+  }, [addLog, sourceLanguage]);
 
   // ─── Actions ─────────────────────────────────────────────────────────
   // useCallback memoizes functions to prevent unnecessary re-renders
@@ -157,6 +180,7 @@ export function AppProvider({ children }: AppProviderProps) {
     setFinished(false);
     setTranscriptionError(null);
     setTranscriptLogs([]);
+    setDetectedLanguage(null);
   }, []);
 
   /**
@@ -202,15 +226,16 @@ export function AppProvider({ children }: AppProviderProps) {
     }
 
     // Must match worker's Xenova model id / family — tiny.en = fast English-only
-    const modelName = "openai/whisper-tiny.en";
+    const modelName = "openai/whisper-tiny";
 
     // Send inference request to the Whisper Web Worker (Float32Array is structured-cloned)
     worker.current?.postMessage({
       type: MessageTypes.INFERENCE_REQUEST,
       audio,
       model_name: modelName,
+      source_language: sourceLanguage,
     });
-  }, [file, audioStream, readAudioFrom]);
+  }, [file, audioStream, readAudioFrom, sourceLanguage]);
 
   // ─── Context Value ───────────────────────────────────────────────────
   // useMemo prevents creating a new context value object on every render,
@@ -219,6 +244,7 @@ export function AppProvider({ children }: AppProviderProps) {
     () => ({
       file,
       audioStream,
+      sourceLanguage,
       output,
       downloading,
       downloadProgress,
@@ -226,14 +252,17 @@ export function AppProvider({ children }: AppProviderProps) {
       finished,
       transcriptionError,
       transcriptLogs,
+      detectedLanguage,
       setFile,
       setAudioStream,
+      setSourceLanguage,
       handleAudioReset,
       handleFormSubmission,
     }),
     [
       file,
       audioStream,
+      sourceLanguage,
       output,
       downloading,
       downloadProgress,
@@ -241,6 +270,7 @@ export function AppProvider({ children }: AppProviderProps) {
       finished,
       transcriptionError,
       transcriptLogs,
+      detectedLanguage,
       handleAudioReset,
       handleFormSubmission,
     ],

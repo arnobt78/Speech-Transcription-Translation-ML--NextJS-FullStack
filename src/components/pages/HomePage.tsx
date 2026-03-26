@@ -35,6 +35,9 @@ import {
   Zap,
   MicOff,
   X,
+  Globe,
+  Info,
+  ChevronDown,
 } from "lucide-react";
 import { useTranscription } from "@/context/TranscriptionContext";
 import { useMediaRecorder } from "@/hooks/useMediaRecorder";
@@ -42,9 +45,20 @@ import { motion } from "framer-motion";
 import { RippleButton } from "@/components/ui/ripple-button";
 import { Badge } from "@/components/ui/badge";
 import { appToast } from "@/lib/toasts";
+import { SourceLanguageSelect } from "@/components/features/SourceLanguageSelect";
+import { WHISPER_SOURCE_LANGUAGES } from "@/data/presets";
 
 // Browser file picker filter — still validate server-side if you ever add uploads API
 const ACCEPTED_AUDIO_TYPES = ".mp3,.wav,.wave,.webm,.ogg,.m4a,.flac";
+const ACCEPTED_AUDIO_EXTENSIONS = [
+  ".mp3",
+  ".wav",
+  ".wave",
+  ".webm",
+  ".ogg",
+  ".m4a",
+  ".flac",
+] as const;
 
 const STEPS = [
   {
@@ -83,8 +97,14 @@ const STEPS = [
 ];
 
 export function HomePage() {
-  const { setFile, setAudioStream } = useTranscription();
+  const { setFile, setAudioStream, sourceLanguage, setSourceLanguage } =
+    useTranscription();
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSourceLangOpen, setIsSourceLangOpen] = useState(false);
+  const selectedSourceLanguageLabel =
+    Object.entries(WHISPER_SOURCE_LANGUAGES).find(
+      ([, code]) => code === sourceLanguage,
+    )?.[0] ?? "English";
 
   // Custom hook handles all MediaRecorder logic
   const {
@@ -107,15 +127,21 @@ export function HomePage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const isSupportedAudioFile = useCallback((f: File): boolean => {
+    if (f.type.startsWith("audio/")) return true;
+    const lower = f.name.toLowerCase();
+    return ACCEPTED_AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+  }, []);
+
   /** Handle file selection from the file input */
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFile = e.target.files?.[0];
-      if (selectedFile) {
+      if (selectedFile && isSupportedAudioFile(selectedFile)) {
         setFile(selectedFile);
       }
     },
-    [setFile],
+    [setFile, isSupportedAudioFile],
   );
 
   /** Handle files dropped onto the drop zone */
@@ -125,11 +151,11 @@ export function HomePage() {
       setIsDragOver(false);
 
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile && droppedFile.type.startsWith("audio/")) {
+      if (droppedFile && isSupportedAudioFile(droppedFile)) {
         setFile(droppedFile);
       }
     },
-    [setFile],
+    [setFile, isSupportedAudioFile],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -142,7 +168,7 @@ export function HomePage() {
   }, []);
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-12 px-4 py-8">
+    <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8">
       {/* ── Hero ── */}
       <div className="flex flex-col items-center gap-5 text-center">
         <motion.div
@@ -174,9 +200,9 @@ export function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
         >
-          <p className="max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg">
-            Record or upload audio, transcribe with Machine Learning Web Worker
-            AI, and translate into 200+ languages — all free, all local.
+          <p className="max-w-xl leading-relaxed text-slate-500">
+            Record or upload audio, transcribe, and translate into 200+
+            languages with Machine Learning Web Worker AI — all free, all local.
           </p>
         </motion.div>
       </div>
@@ -268,10 +294,69 @@ export function HomePage() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.25 }}
-        className="flex flex-col items-center gap-4 w-full max-w-sm"
+        className="flex flex-col items-center gap-4 w-full"
       >
+        <div className="w-full max-w-7xl">
+          <div className="rounded-2xl border border-sky-300/40 bg-gradient-to-br from-sky-500/15 via-blue-500/10 to-indigo-500/5 p-4 shadow-[0_20px_55px_rgba(59,130,246,0.22)] backdrop-blur-sm transition-all duration-300 hover:border-sky-300/60">
+            <button
+              type="button"
+              onClick={() => setIsSourceLangOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-0.5"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <Info className="h-4 w-4 text-sky-600" />
+                <span>Advanced: source language</span>
+                <Badge
+                  variant="default"
+                  className="border-sky-200 bg-sky-100 text-sky-700"
+                >
+                  {sourceLanguage
+                    ? `${selectedSourceLanguageLabel} (${sourceLanguage})`
+                    : selectedSourceLanguageLabel}
+                </Badge>
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 text-sky-700 transition-transform duration-200 ${
+                  isSourceLangOpen ? "rotate-180" : "rotate-0"
+                }`}
+              />
+            </button>
+            <p className="mt-2 px-1 text-left text-[11px] leading-relaxed text-sky-900/80">
+              <span className="font-semibold">Transcribe source language:</span>{" "}
+              {sourceLanguage
+                ? `${selectedSourceLanguageLabel} (${sourceLanguage})`
+                : selectedSourceLanguageLabel}
+              . We currently use{" "}
+              <span className="font-semibold">Whisper Tiny</span> for fast
+              browser performance. For best results, keep English selected for
+              English audio; for other languages, choose the matching source
+              language before recording/upload. Non-English output quality may
+              vary with Whisper Tiny, especially for short or noisy clips.
+            </p>
+            <p className="mt-1 px-1 text-left text-[11px] leading-relaxed text-sky-900/80">
+              <span className="font-semibold">Multilingual transcription:</span>{" "}
+              Powered by Whisper tiny — default English mode is fastest. Source
+              language can be set from Advanced options before transcription.
+              <span className="inline-flex items-center gap-0.5 font-medium">
+                {" "}
+                <Globe className="h-3 w-3" /> 99+ languages supported.
+              </span>{" "}
+              The model (~40 MB) downloads once and is cached in your browser —
+              first run may take a moment longer than usual.
+            </p>
+            {isSourceLangOpen && (
+              <div className="mt-3 border-t border-sky-200/60 pt-3">
+                <SourceLanguageSelect
+                  value={sourceLanguage}
+                  onChange={setSourceLanguage}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
         <div
-          className={`w-full rounded-2xl${!isRecording ? " cta-shine-wrap" : ""}`}
+          className={`w-full  max-w-sm rounded-2xl${!isRecording ? " cta-shine-wrap" : ""}`}
         >
           <RippleButton
             onClick={

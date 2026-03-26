@@ -42,12 +42,18 @@ export interface TranscriptionContextValue {
   transcriptionError: string | null;
   /** Live log lines emitted during download + transcription */
   transcriptLogs: string[];
+  /** ISO 639-1 language code detected by Whisper (e.g. "de", "fr"), null until transcription completes */
+  detectedLanguage: string | null;
+  /** ISO 639-1 source language selected by user for Whisper transcription */
+  sourceLanguage: string;
 
   // ─── Actions ───────────────────────────────────────────────
   /** Set the uploaded file */
   setFile: (file: File | null) => void;
   /** Set the recorded audio stream */
   setAudioStream: (stream: Blob | null) => void;
+  /** Set source language for Whisper transcription */
+  setSourceLanguage: (lang: string) => void;
   /** Clear file and audio stream to start over */
   handleAudioReset: () => void;
   /** Begin the transcription process */

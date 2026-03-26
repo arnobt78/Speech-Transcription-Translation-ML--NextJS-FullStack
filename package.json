@@ -4,14 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    "dev:turbopack": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "lint:next": "next lint"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.4.1",
+    "@huggingface/transformers": "^3.8.1",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.2.0",
     "@radix-ui/react-tabs": "^1.1.12",

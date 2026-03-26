@@ -30,9 +30,11 @@ import {
   Terminal,
   Globe,
   Sparkles,
+  Mic,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslateWorker } from "@/hooks/useTranslateWorker";
+import { useTranscription } from "@/context/TranscriptionContext";
 import { LANGUAGES } from "@/data/presets";
 import { Transcription } from "@/components/features/Transcription";
 import { Translation } from "@/components/features/Translation";
@@ -100,6 +102,22 @@ export function Information({ output, finished }: InformationProps) {
     tokenCount,
     finalTokenCount,
   } = useTranslateWorker();
+
+  const { detectedLanguage } = useTranscription();
+
+  // Resolve detected language full name via Intl.DisplayNames
+  const detectedLanguageName = useMemo(() => {
+    if (!detectedLanguage) return null;
+    try {
+      return (
+        new Intl.DisplayNames(["en"], { type: "language" }).of(
+          detectedLanguage,
+        ) ?? detectedLanguage
+      );
+    } catch {
+      return detectedLanguage;
+    }
+  }, [detectedLanguage]);
 
   // Resolve selected language display name
   const selectedLangName = useMemo(
@@ -230,6 +248,24 @@ export function Information({ output, finished }: InformationProps) {
           tab to convert into 200+ languages with{" "}
           <span className="font-semibold text-blue-600">Meta NLLB-200</span>.
         </p>
+        {/* Detected language badge */}
+        {detectedLanguageName && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5"
+          >
+            <Mic className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="text-xs font-semibold text-emerald-700">
+              Detected audio language:
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+              <Globe className="h-3 w-3" />
+              {detectedLanguageName}
+            </span>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Tab Navigation */}

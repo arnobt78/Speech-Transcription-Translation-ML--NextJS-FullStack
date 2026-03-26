@@ -99,7 +99,10 @@ export type WhisperWorkerMessage =
       completedUntilTimestamp: number;
     }
   | { type: typeof MessageTypes.RESULT_PARTIAL; result: PartialResult }
-  | { type: typeof MessageTypes.INFERENCE_DONE }
+  | {
+      type: typeof MessageTypes.INFERENCE_DONE;
+      detectedLanguage?: string | null;
+    }
   | { type: typeof MessageTypes.ERROR; error: string };
 
 /** Partial transcription result before final chunk processing */
@@ -114,6 +117,7 @@ export interface WhisperInferenceRequest {
   type: typeof MessageTypes.INFERENCE_REQUEST;
   audio: Float32Array;
   model_name: string;
+  source_language?: string | null;
 }
 
 /** Messages sent FROM the Translate worker TO the main thread */

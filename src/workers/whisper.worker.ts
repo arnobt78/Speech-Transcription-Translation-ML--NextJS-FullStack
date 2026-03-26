@@ -16,7 +16,7 @@
  * 3. Processes audio in 30-second chunks with 5-second overlap (stride)
  * 4. Sends back partial results during processing and final results when done
  *
- * Model: Xenova/whisper-tiny.en (39M parameters, English-only, fastest, ONNX-converted)
+ * Model: Xenova/whisper-tiny (39M parameters, multilingual, ONNX-converted)
  * Library: @huggingface/transformers (ONNX Runtime Web backend)
  */
 
@@ -29,8 +29,12 @@ import { MessageTypes } from "@/data/presets";
 // ─── Singleton Pipeline ─────────────────────────────────────────────────────
 class MyTranscriptionPipeline {
   static task = "automatic-speech-recognition" as const;
-  static model = "Xenova/whisper-tiny.en";
+  static model = "Xenova/whisper-tiny";
   static instance: AutomaticSpeechRecognitionPipeline | null = null;
+
+  static reset(): void {
+    this.instance = null;
+  }
 
   static async getInstance(
     progressCallback?: (data: {
@@ -72,14 +76,17 @@ self.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 
 // ─── Message Handler ────────────────────────────────────────────────────────
 self.addEventListener("message", async (event: MessageEvent) => {
-  const { type, audio } = event.data;
+  const { type, audio, source_language } = event.data;
   if (type === MessageTypes.INFERENCE_REQUEST) {
-    await transcribe(audio);
+    await transcribe(audio, source_language ?? null);
   }
 });
 
 // ─── Transcription Logic ────────────────────────────────────────────────────
-async function transcribe(audio: Float32Array): Promise<void> {
+async function transcribe(
+  audio: Float32Array,
+  sourceLanguage: string | null,
+): Promise<void> {
   sendLoadingMessage("loading");
 
   let pipelineInstance: AutomaticSpeechRecognitionPipeline;
@@ -108,17 +115,20 @@ async function transcribe(audio: Float32Array): Promise<void> {
   let pipelineResult: any;
   try {
     // Callable pipeline: runs ASR on full Float32Array with chunked processing inside the lib
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    pipelineResult = await (pipelineInstance as any)(audio, {
+    const options: Record<string, unknown> = {
       top_k: 0,
       do_sample: false,
       chunk_length_s: 30,
       stride_length_s: strideLengthS,
       return_timestamps: true,
+      task: "transcribe",
       callback_function:
         generationTracker.callbackFunction.bind(generationTracker),
       chunk_callback: generationTracker.chunkCallback.bind(generationTracker),
-    });
+    };
+    if (sourceLanguage) options.language = sourceLanguage;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pipelineResult = await (pipelineInstance as any)(audio, options);
   } catch (err) {
     self.postMessage({
       type: MessageTypes.ERROR,
@@ -128,6 +138,16 @@ async function transcribe(audio: Float32Array): Promise<void> {
   }
 
   generationTracker.sendFinalResult(pipelineResult);
+
+  // Debug: post the raw result shape to main thread (visible in AppProvider logs)
+
+  const raw = Array.isArray(pipelineResult)
+    ? pipelineResult[0]
+    : pipelineResult;
+  self.postMessage({
+    type: MessageTypes.LOADING,
+    status: `debug:${JSON.stringify({ keys: raw ? Object.keys(raw) : [], language: raw?.language ?? null, model: "Xenova/whisper-tiny" })}`,
+  });
 }
 
 // ─── Progress Callbacks ─────────────────────────────────────────────────────
@@ -205,30 +225,43 @@ class GenerationTracker {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sendFinalResult(pipelineResult?: any): void {
     let chunks = this.processedChunks;
+    let detectedLanguage: string | null = null;
 
-    // @huggingface/transformers v3: chunk_callback is never called.
-    // The pipeline returns the full result directly. Parse it here.
-    if (chunks.length === 0 && pipelineResult) {
-      const raw = Array.isArray(pipelineResult)
+    const raw = pipelineResult
+      ? Array.isArray(pipelineResult)
         ? pipelineResult[0]
-        : pipelineResult;
-      // v3 result shape: { text: string, chunks?: [{text, timestamp:[start,end]}] }
+        : pipelineResult
+      : null;
+
+    // transformers.js may surface language in different locations depending on version
+    if (raw) {
+      const tokenMatch = raw?.text?.match(/<\|([a-z]{2,3})\|>/);
+      detectedLanguage =
+        raw.language ??
+        raw.detected_language ??
+        raw.language_code ??
+        raw?.chunks?.[0]?.language ??
+        (tokenMatch ? tokenMatch[1] : null) ??
+        null;
+    }
+
+    if (chunks.length === 0 && raw) {
       if (Array.isArray(raw?.chunks) && raw.chunks.length > 0) {
         chunks = raw.chunks.map(
           (c: { text: string; timestamp: [number, number] }, i: number) =>
             this.processChunk(c, i),
         );
-      } else if (typeof raw?.text === "string" && raw.text.trim()) {
-        // No timestamp chunks — wrap entire text as single chunk
-        chunks = [{ index: 0, text: raw.text.trim(), start: 0, end: 0 }];
       }
+    } else if (typeof raw?.text === "string" && raw.text.trim()) {
+      // No timestamp chunks — wrap entire text as single chunk
+      chunks = [{ index: 0, text: raw.text.trim(), start: 0, end: 0 }];
     }
 
     if (chunks.length > 0) {
       const lastTs = chunks[chunks.length - 1].end;
       createResultMessage(chunks, true, lastTs);
     }
-    self.postMessage({ type: MessageTypes.INFERENCE_DONE });
+    self.postMessage({ type: MessageTypes.INFERENCE_DONE, detectedLanguage });
   }
 
   /** Called during generation with beam search results (partial output) */

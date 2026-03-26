@@ -15,10 +15,21 @@
 
 "use client";
 
-import { useRef, useEffect } from "react";
-import { PenLine, RotateCcw, FileAudio, Mic } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import {
+  PenLine,
+  RotateCcw,
+  FileAudio,
+  Mic,
+  ChevronDown,
+  Info,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { RippleButton } from "@/components/ui/ripple-button";
+import { SourceLanguageSelect } from "@/components/features/SourceLanguageSelect";
+import { useTranscription } from "@/context/TranscriptionContext";
+import { WHISPER_SOURCE_LANGUAGES } from "@/data/presets";
+import { Badge } from "@/components/ui/badge";
 import type { FileDisplayProps } from "@/types";
 
 /** Human-readable size for uploaded files only (recordings may omit size). */
@@ -33,6 +44,12 @@ export function FileDisplay({
   audioStream,
   handleFormSubmission,
 }: FileDisplayProps) {
+  const { sourceLanguage, setSourceLanguage } = useTranscription();
+  const [isSourceLangOpen, setIsSourceLangOpen] = useState(false);
+  const selectedSourceLanguageLabel =
+    Object.entries(WHISPER_SOURCE_LANGUAGES).find(
+      ([, code]) => code === sourceLanguage,
+    )?.[0] ?? "English";
   // useRef gives us a direct reference to the <audio> DOM element
   // so we can set its src programmatically
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -119,6 +136,51 @@ export function FileDisplay({
             <audio ref={audioRef} className="w-full rounded-xl" controls>
               Your browser does not support the audio element.
             </audio>
+            <div className="mt-4 rounded-2xl border border-sky-300/40 bg-gradient-to-br from-sky-500/15 via-blue-500/10 to-indigo-500/5 p-4 shadow-[0_20px_55px_rgba(59,130,246,0.22)] backdrop-blur-sm transition-all duration-300 hover:border-sky-300/60">
+              <button
+                type="button"
+                onClick={() => setIsSourceLangOpen((v) => !v)}
+                className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-0.5"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-sky-700">
+                  <Info className="h-4 w-4 text-sky-600" />
+                  <span>Advanced: source language</span>
+                  <Badge
+                    variant="default"
+                    className="border-sky-200 bg-sky-100 text-sky-700"
+                  >
+                    {sourceLanguage
+                      ? `${selectedSourceLanguageLabel} (${sourceLanguage})`
+                      : selectedSourceLanguageLabel}
+                  </Badge>
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-sky-700 transition-transform duration-200 ${
+                    isSourceLangOpen ? "rotate-180" : "rotate-0"
+                  }`}
+                />
+              </button>
+              <p className="mt-2 px-1 text-left text-[11px] leading-relaxed text-sky-900/80">
+                <span className="font-semibold">Transcribe source language:</span>{" "}
+                {sourceLanguage
+                  ? `${selectedSourceLanguageLabel} (${sourceLanguage})`
+                  : selectedSourceLanguageLabel}
+                . This app uses{" "}
+                <span className="font-semibold">Whisper Tiny</span> for fast
+                local transcription. For non-English audio, select the matching
+                source language before pressing Transcribe. Accuracy can vary in
+                short/noisy recordings because Whisper Tiny is a speed-focused
+                model.
+              </p>
+              {isSourceLangOpen && (
+                <div className="mt-3 border-t border-sky-200/60 pt-3">
+                  <SourceLanguageSelect
+                    value={sourceLanguage}
+                    onChange={setSourceLanguage}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}

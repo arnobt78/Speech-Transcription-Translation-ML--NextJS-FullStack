@@ -114,7 +114,18 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
           break;
         }
         case "complete":
-          setTranslation(data.output?.[0]?.translation_text ?? null);
+          if (Array.isArray(data.output)) {
+            setTranslation(
+              data.output
+                .map((item: { translation_text?: string }) =>
+                  (item.translation_text ?? "").trim(),
+                )
+                .filter(Boolean)
+                .join(" "),
+            );
+          } else {
+            setTranslation(data.output?.translation_text ?? data.output ?? null);
+          }
           setFinalTokenCount(tokenCountRef.current);
           setTranslating(false);
           addLog(
@@ -141,6 +152,18 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
     (textChunks: string[]) => {
       if (translating || toLanguage === "Select language") return;
 
+      // Low-cost quality boost: split into sentence-like segments before translation
+      // so the model gets shorter and cleaner units.
+      const normalized = textChunks.join(" ").replace(/\s+/g, " ").trim();
+      const sentences = normalized
+        .split(/(?<=[.!?।])\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const segments = (sentences.length > 0 ? sentences : [normalized]).filter(
+        Boolean,
+      );
+      if (segments.length === 0) return;
+
       const langName =
         Object.entries(LANGUAGES).find(
           ([, code]) => code === toLanguage,
@@ -151,11 +174,11 @@ export function useTranslateWorker(): UseTranslateWorkerReturn {
       setTokenCount(0);
       tokenCountRef.current = 0;
       setFinalTokenCount(0);
-      addLog(`Starting translation → ${langName}…`);
+      addLog(`Starting translation → ${langName} (${segments.length} segments)…`);
       appToast.translationStarted(langName);
       // Whisper output is English in this app build — NLLB source fixed to Latin English
       worker.current?.postMessage({
-        text: textChunks,
+        text: segments,
         src_lang: "eng_Latn",
         tgt_lang: toLanguage,
       });
